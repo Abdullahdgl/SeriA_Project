@@ -47,8 +47,36 @@ dotnet run --project SeriA.API
 dotnet run --project SeriA.UI
 ```
 
-- API / Swagger: `https://localhost:7155/swagger`
-- Arayüz: `https://localhost:7212`
+- API / Swagger: `https://localhost:xxx/swagger`
+- Arayüz: `https://localhost:xxxx`
+
+
+<br>
+<img width="1006" height="915" alt="puanDurumu" src="https://github.com/user-attachments/assets/bd79c8e7-051c-4152-9f1f-0331d1e948f4" />
+
+<br>
+
+<img width="1019" height="688" alt="puanDurumu2" src="https://github.com/user-attachments/assets/53eeb535-bfe3-4a58-a94d-7abd99ce9d2d" />
+
+
+<br>
+
+<img width="1223" height="900" alt="bitenMaclar" src="https://github.com/user-attachments/assets/34ca3c0b-67fd-4f86-aa73-fc476328d15a" />
+
+
+<br>
+<img width="999" height="901" alt="GelecekMaclar" src="https://github.com/user-attachments/assets/f18e755f-b5cd-4ac6-adf6-115c37732298" />
+
+
+<br>
+<img width="1767" height="781" alt="AdminPaneli" src="https://github.com/user-attachments/assets/f0c77486-4210-4a9d-a26b-49d478d358fb" />
+
+
+<br>
+
+<img width="1678" height="728" alt="yeniTakimEkle" src="https://github.com/user-attachments/assets/25440ae5-1154-4356-a9c4-6e0501525f8b" />
+
+<br>
 
 ## 💡 Kazanımlar & Deneyim
 
