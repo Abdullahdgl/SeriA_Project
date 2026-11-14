@@ -77,6 +77,16 @@ dotnet run --project SeriA.UI
 <img width="1678" height="728" alt="yeniTakimEkle" src="https://github.com/user-attachments/assets/25440ae5-1154-4356-a9c4-6e0501525f8b" />
 
 <br>
+<img width="918" height="909" alt="detay1" src="https://github.com/user-attachments/assets/0878eec7-2b13-47a0-b43e-5dea1babdb38" />
+
+<br>
+
+<img width="918" height="909" alt="detay2" src="https://github.com/user-attachments/assets/186d370f-082d-4a2c-8c28-0ff0a5bf92c1" />
+
+
+
+
+
 
 ## 💡 Kazanımlar & Deneyim
 
