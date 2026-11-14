@@ -1,69 +1,45 @@
 # ⚽ ASP.NET Core MVC & Web API (.NET 6) SeriA — Lig, Fikstür ve Maç Yönetimi
 
-M&Y Yazılım Eğitim Akademi Danışmanlık bünyesinde aldığım eğitim sürecinde, öğrendiklerimi pratiğe dökerek Serie A temalı bir lig uygulaması geliştirdim: veri katmanı ayrı bir Web API’de, arayüz katmanı ASP.NET Core MVC’de durur.
+M&Y Yazılım Eğitim Akademi Danışmanlık bünyesinde aldığım eğitim sürecinde, öğrendiklerimi pratiğe dökerek Serie A temalı, API + MVC ayrımına dayalı full-stack bir lig uygulaması geliştirdim.
 
-Amacım tek bir MVC projesine hem SQL hem HTML sıkıştırmak değil; takım, maç, maç olayı ve puan durumu için REST uçları üreten bir API ile bu uçları `HttpClient` üzerinden tüketen, sayfaları ViewComponent parçalarına bölen sürdürülebilir bir yapı inşa etmekti.
-
----
+Amacım tek bir MVC projesine hem SQL hem HTML sıkıştırmak değil; takım, maç ve puan durumunu REST uçlarıyla sunan bir Web API’nin arkasında, sayfaları ViewComponent parçalarına bölen sürdürülebilir bir arayüz mimarisi inşa etmekti.
 
 ## 🛠️ Mimari ve Teknik Detaylar
 
-- **Çift proje:** `SeriA.API` (Web API + EF Core + SQL Server) ve `SeriA.UI` (MVC). Solution adı `SeriA_Project`.
-- **Katman ayrımı:** UI veritabanına bağlanmaz. Controller’lar `IHttpClientFactory` ile `https://localhost:7155` adresindeki API’yi çağırır.
-- **Entity Framework Core:** `Team`, `Match`, `MatchEvent`, `MatchStatistic`, `LeagueTable` entity’leri `ApiContext` üzerinden SQL Server’a map edilir.
-- **REST uçları:** Takım, maç, maç olayı ve lig tablosu JSON olarak sunulur. Geliştirme ortamında Swagger açıktır.
-- **DTO:** API yanıtları UI tarafında `ResultTeamDto`, `ResultMatchDto`, `ResultMatchDetailDto`, `ResultLeagueDto` gibi sınıflara çevrilir. JSON dönüşümü Newtonsoft.Json ile yapılır.
-- **ViewComponent mimarisi:** HTML şablonları atomik parçalara bölündü. Her parça bir C# `ViewComponent` sınıfı + `Views/Shared/Components/{Ad}/Default.cshtml` dosyasıdır.
-- **İki kabuk:** Admin ekranları `_AdminLayout` paylaşır. Fikstür, puan durumu ve maç detayı `Layout = null` ile kendi iskeletini kurar.
-- **İlişki kuralları:** Maçın ev sahibi ve deplasman takımı `Restrict` ile bağlıdır; takım, üzerinde maç varken silinmez.
-
----
+- **Çift proje mimarisi:** `SeriA.API` (Web API + EF Core) ve `SeriA.UI` (ASP.NET Core MVC) ayrı süreçlerde çalışır. Solution adı `SeriA_Project`.
+- **Katman ayrımı:** UI veritabanına bağlanmaz. Controller’lar `IHttpClientFactory` ile `https://localhost:7155` üzerindeki API’yi tüketir.
+- **EF Core & MSSQL:** Code-First yaklaşımıyla `Team`, `Match`, `MatchEvent`, `MatchStatistic` ve `LeagueTable` entity’leri Migration’lar üzerinden SQL Server’a map edildi.
+- **İlişkisel model:** Maçın ev sahibi ve deplasmanı `Team` ile bağlanır; silme kuralı `Restrict`’tir. Puan satırı `TeamId` üzerinden takıma bağlıdır.
+- **REST & DTO:** JSON yanıtları UI tarafında tip güvenli DTO’lara (`ResultTeamDto`, `ResultMatchDto`, `ResultLeagueDto` vb.) dönüştürülür. Swagger ile uçlar doğrulanır.
+- **Modüler arayüz:** HTML şablonları ViewComponent’lere bölündü. Admin ekranları `_AdminLayout` paylaşır; fikstür, puan durumu ve maç detayı kendi sayfa iskeletini kurar.
 
 ## 📌 Uygulama Modülleri
 
-### ▫️ API (`SeriA.API` — `https://localhost:7155`)
+### ▫️ API (`SeriA.API`)
+- 🛡️ **Takım** — `GET/POST /api/Team`
+- ⚽ **Maç** — `GET/POST /api/Match`, `GET /api/Match/{id}`
+- 📋 **Maç olayları** — `GET /api/MatchEvent/{id}`
+- 📊 **Puan durumu** — `GET /api/League` (puan, ardından averaj)
 
-| Metot | Adres | İş |
-|---|---|---|
-| GET, POST | `/api/Team` | Takım listesi ve kayıt |
-| GET, POST | `/api/Match` | Maç listesi ve kayıt |
-| GET | `/api/Match/{id}` | Tek maç |
-| GET | `/api/MatchEvent/{id}` | Maça ait olaylar |
-| GET | `/api/League` | Puan durumu (puan, ardından averaj) |
+### ▫️ Yönetim paneli
+- 👥 **Takım yönetimi** — admin kabuğu, menü, tablo ve modal ViewComponent’leri
+- ➕ **Maç oluşturma** — API’den takım listesi, `POST /api/Match`
 
-### ▫️ Arayüz (`SeriA.UI` — `https://localhost:7212`)
-
-#### 🛡️ Yönetim
-- **Takım yönetimi** — `_AdminLayout` içinde; menü, üst çubuk, tablo ve modal ViewComponent’lere ayrıldı
-- **Maç oluşturma** — API’den takım listesi çekilir, `POST /api/Match` ile kayıt atılır
-
-#### 📅 Haftalık fikstür
-- Hafta seçici, maç listesi, haftanın özeti ve öne çıkan maç kartı
-- Sayfa kendi `<head>` ve `fixtures.css` / `fixtures.js` dosyalarını kullanır
-
-#### 📊 Puan durumu
-- Lig tablosu, özet kartlar, yan panel
-- `LeagueController` `GET /api/League` yanıtını DTO listesine çevirir
-
-#### 🏟️ Maç detayı
-- Skor kahramanı, zaman çizelgesi, goller, kartlar, değişiklikler, ilk yarı skoru ve maç bilgisi
-- İki istek: `GET /api/Match/{id}` ve `GET /api/MatchEvent/{id}`
-
----
+### ▫️ Seyirci ekranları
+- 📅 **Haftalık fikstür** — hafta seçici, maç listesi, özet ve öne çıkan maç
+- 📈 **Puan durumu** — lig tablosu, özet kartlar, yan panel
+- 🏟️ **Maç detayı** — skor, zaman çizelgesi, goller, kartlar, değişiklikler ve ilk yarı
 
 ## 💻 Kullanılan Teknoloji Yığını
 
-**Backend & Framework:** ASP.NET Core Web API (.NET 6) │ ASP.NET Core MVC (.NET 6) │ C#  
-**Veri:** Entity Framework Core 6 │ SQL Server │ Migrations  
+**Backend & Framework:** ASP.NET Core Web API (.NET 6) │ ASP.NET Core MVC (.NET 6) │ C# │ LINQ  
+**Veritabanı & ORM:** Entity Framework Core (Code-First) │ SQL Server (MSSQL) │ Migrations  
 **HTTP & JSON:** `IHttpClientFactory` │ Newtonsoft.Json │ Swashbuckle (Swagger)  
-**Frontend:** Razor Views │ ViewComponents │ Bootstrap 5 │ HTML5 / CSS3 │ JavaScript  
-**Çözüm:** Visual Studio 2022 │ `SeriA_Project.sln`
-
----
+**Frontend & UI Components:** ViewComponent │ Razor Views │ Bootstrap 5 │ HTML5 / CSS3 │ JavaScript
 
 ## ▶️ Çalıştırma
 
-SQL Server’ın ayakta olması gerekir. Bağlantı cümlesi `SeriA.API/Context/ApiContext.cs` içindeki `OnConfiguring` metodundadır; sunucu adını kendi makinenize göre düzenleyin.
+SQL Server ayakta olmalıdır. Bağlantı cümlesi `SeriA.API/Context/ApiContext.cs` içindeki `OnConfiguring` metodundadır.
 
 ```bash
 dotnet ef database update --project SeriA.API
@@ -72,14 +48,10 @@ dotnet run --project SeriA.UI
 ```
 
 - API / Swagger: `https://localhost:7155/swagger`
-- Arayüz: `https://localhost:7212` (varsayılan route: `League/Index`)
-
-İki proje birlikte çalışmalıdır. UI, listeler için API’ye HTTP atar.
-
----
+- Arayüz: `https://localhost:7212`
 
 ## 💡 Kazanımlar & Deneyim
 
-M&Y Yazılım Eğitim Akademi Danışmanlık bünyesinde aldığım eğitim sürecinde, öğrendiklerimi pratiğe dökerek SeriA lig uygulamasını geliştirdim. Bu çalışma sayesinde yalnızca bir arayüz ortaya çıkarmış olmadım; aynı zamanda Web API ile MVC’nin ayrı süreçler olarak yaşaması, EF Core ile ilişkili entity tasarımı, REST uçlarının Swagger üzerinden doğrulanması, `HttpClient` ile JSON’un DTO’ya dönüştürülmesi ve büyük HTML şablonlarının ViewComponent’lere bölünmesi konularında da deneyim kazandım.
+M&Y Yazılım Eğitim Akademi Danışmanlık bünyesinde aldığım eğitim sürecinde, öğrendiklerimi pratiğe dökerek SeriA lig uygulamasını geliştirdim. Bu çalışma sayesinde yalnızca bir web arayüzü ortaya çıkarmış olmadım; aynı zamanda Web API ile MVC’nin ayrı süreçler olarak yaşaması, ilişkisel veritabanı tasarımı, REST uçlarının DTO’ya dönüştürülmesi, `HttpClient` ile servis tüketimi ve büyük HTML şablonlarının ViewComponent’lere bölünmesi konularında da önemli deneyimler kazandım.
 
 Eğitim sürecime katkı sağlayan, bilgi ve tecrübeleriyle gelişimime destek olan **Murat Yücedağ** ve **Erhan Gündüz** hocalarıma emekleri için teşekkür ederim.
